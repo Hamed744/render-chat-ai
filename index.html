@@ -1,24 +1,1073 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>چت‌بات هوش مصنوعی</title>
-    <meta name="description" content="چت‌بات پیشرفته با هوش مصنوعی - تجربه‌ای شبیه lovable.dev" />
-    <meta name="author" content="Lovable" />
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>چت بات آلفا</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class', 
+        theme: {
+          extend: {}
+        }
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <meta property="og:title" content="84d7ecac-2ef7-4198-8558-c4909a15b413" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <style>
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        body { font-family: 'Vazirmatn', 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(209, 213, 219, 0.7); border-radius: 10px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(107, 114, 128, 0.5); }
+        .hidden { display: none !important; }
+        #history-sidebar, #confirm-modal-content, #rename-modal-content, #edit-modal-content, #html-preview-content, #settings-modal-content { transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1); }
+        #sidebar-overlay, #confirm-modal-overlay, #rename-modal-overlay, #edit-modal-overlay, #html-preview-overlay, #settings-modal #settings-modal-overlay { transition: opacity 300ms ease-in-out; }
+        #modal-content { transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1); }
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+        @keyframes fade-slide-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .message-entry { animation: fade-slide-in 300ms ease-out forwards; }
+        .typing-indicator span { height: 8px; width: 8px; background-color: #9ca3af; border-radius: 50%; display: inline-block; animation: typing-blink 1.4s infinite both; }
+        .dark .typing-indicator span { background-color: #6b7280; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing-blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
 
-  <body>
-    <div id="root"></div>
+        .prose pre {
+            position: relative;
+            background-color: #282c34;
+            border-radius: 0.75rem;
+            padding-top: 2.5rem;
+            overflow-x: auto;
+        }
+        .prose pre code {
+            white-space: pre;
+            word-break: normal;
+            display: block;
+            padding: 0.5rem 0.75rem;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .code-button-container {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .prose pre:hover .code-button-container { opacity: 1; }
+        .code-button {
+            padding: 0.25rem 0.5rem;
+            background-color: rgba(75, 85, 99, 0.8);
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: background-color 0.2s;
+        }
+        .code-button:hover { background-color: rgba(107, 114, 128, 0.8); }
+        .code-button:active { background-color: #4b5563; }
+
+        .message-actions { opacity: 0; transition: opacity 0.3s ease-in-out; position: absolute; bottom: -1rem; left: 0; display: flex; align-items: center; }
+        .group:hover .message-actions { opacity: 1; }
+        .action-button { padding: 0.375rem; border-radius: 9999px; background-color: rgba(255, 255, 255, 0.7); backdrop-filter: blur(4px); border: 1px solid #e5e7eb; color: #6b7280; transition: all 0.2s; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+        .dark .action-button { background-color: rgba(55, 65, 81, 0.7); border-color: #4b5563; color: #9ca3af; }
+        .action-button:hover { color: #1f2937; background-color: rgba(243, 244, 246, 0.9); border-color: #d1d5db; }
+        .dark .action-button:hover { color: #e5e7eb; background-color: rgba(75, 85, 99, 0.9); border-color: #6b7280; }
+        .action-button.active { color: #3b82f6; border-color: #93c5fd; background-color: #eff6ff; }
+        .dark .action-button.active { color: #60a5fa; border-color: #3b82f6; background-color: #1e3a8a; }
+        .like-animation { animation: like-pop 0.4s ease-in-out; }
+        @keyframes like-pop { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
+        .action-button .copy-feedback {
+            position: absolute;
+            left: calc(100% + 8px);
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #1f2937;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+            pointer-events: none;
+        }
+        .action-button .copy-feedback.visible {
+            opacity: 1;
+            transform: translateY(-50%) translateX(-4px);
+        }
+
+        .history-item-button { opacity: 1; }
+        #history-item-menu { transform-origin: top right; transform: scale(0.95); opacity: 0; pointer-events: none; transition: transform 150ms ease-out, opacity 150ms ease-out; }
+        #history-item-menu.visible { transform: scale(1); opacity: 1; pointer-events: auto; }
+
+        #message-item-menu { transition: opacity 200ms ease-in-out; }
+        #message-item-menu-content { transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1); transform: scale(0.95); opacity: 0; }
+        #message-item-menu.visible { opacity: 1; }
+        #message-item-menu.visible #message-item-menu-content { transform: scale(1); opacity: 1; }
+        .message-preview-container { padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 0.5rem; }
+        .dark .message-preview-container { border-bottom-color: #374151; }
+        .message-preview-text { font-size: 0.875rem; color: #6b7280; line-height: 1.5; max-height: 4.5rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; text-overflow: ellipsis; }
+        .dark .message-preview-text { color: #d1d5db; }
+
+        #confirm-modal-content, #rename-modal-content, #edit-modal-content, #html-preview-content { transform: scale(0.95); opacity: 0; }
+
+        #message-input, #edit-input { resize: none; overflow-y: auto; max-height: 120px; line-height: 1.5; padding-top: 10px; padding-bottom: 10px; }
+        #message-form { align-items: flex-end; transition: all 0.2s, border-radius 0.15s ease-out; }
+        #app-container { display: flex; flex-direction: column; }
+        #main-header, #main-footer { position: static; flex-shrink: 0; }
+        #chat-window { flex-grow: 1; }
+
+        #html-preview-modal { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 60; }
+        #html-preview-content { background-color: #fff; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); width: 100%; height: 90%; max-width: 800px; display: flex; flex-direction: column; overflow: hidden; transform: scale(0.95); opacity: 0; }
+        #html-preview-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #e2e8f0; background-color: #f8fafc; }
+        .dark #html-preview-header { border-bottom-color: #374151; background-color: #1f2937; }
+        #html-preview-iframe-container { flex-grow: 1; overflow: hidden; }
+        #html-preview-iframe { width: 100%; height: 100%; border: none; background-color: #fff; }
+
+        .message-entry p.whitespace-pre-wrap {
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .prose {
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+        .dark .prose { --tw-prose-body: #d1d5db; --tw-prose-headings: #fff; --tw-prose-lead: #9ca3af; --tw-prose-links: #fff; --tw-prose-bold: #fff; --tw-prose-counters: #9ca3af; --tw-prose-bullets: #4b5563; --tw-prose-hr: #374151; --tw-prose-quotes: #f3f4f6; --tw-prose-quote-borders: #374151; --tw-prose-captions: #9ca3af; --tw-prose-code: #fff; --tw-prose-pre-code: #d1d5db; --tw-prose-pre-bg: #1f2937; --tw-prose-th-borders: #4b5563; --tw-prose-td-borders: #374151; }
+
+        .prose table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            margin-bottom: 1em;
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            min-width: 100%;
+            table-layout: auto;
+        }
+
+        .prose th,
+        .prose td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75em 0.5em;
+            text-align: right;
+            vertical-align: top;
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-break: normal;
+        }
+        .dark .prose th, .dark .prose td { border-color: #4b5563; }
+
+        .prose th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #334155;
+        }
+        .dark .prose th { background-color: #374151; color: #d1d5db; }
+
+        .prose tr:nth-child(even) {
+            background-color: #fcfdfe;
+        }
+        .dark .prose tr:nth-child(even) { background-color: #1f2937; }
+
+        @media (max-width: 768px) {
+            .prose th,
+            .prose td {
+                font-size: 0.85rem;
+                padding: 0.6em 0.4em;
+            }
+        }
+
+        #file-popup-menu {
+            position: absolute;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            padding: 0.5rem;
+            z-index: 50;
+            width: auto;
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+            transform-origin: bottom left;
+            transition: opacity 200ms ease-out, transform 200ms ease-out;
+            pointer-events: none;
+            min-width: 200px;
+        }
+        #file-popup-menu.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .popup-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            text-align: right;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+            color: #333;
+            font-size: 16px;
+        }
+        .popup-option:hover {
+            background-color: #f3f4f6;
+        }
+        .dark .popup-option:hover { background-color: #374151; }
+        .popup-option svg {
+            width: 32px;
+            height: 32px;
+            margin-right: 15px;
+            flex-shrink: 0;
+            filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.2));
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .popup-option:hover svg {
+            transform: translateY(-3px) scale(1.05);
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.3));
+        }
+
+        .popup-option .upload-arrow {
+            animation: uploadPulse 1.5s infinite alternate ease-in-out;
+        }
+
+        @keyframes uploadPulse {
+            0% { transform: translateY(0); opacity: 1; }
+            50% { transform: translateY(-3px); opacity: 0.8; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .popup-option .magnifier-group {
+            transform-origin: 12px 14px;
+            animation: magnifierFloatScan 3s infinite alternate ease-in-out;
+        }
+
+        @keyframes magnifierFloatScan {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(1px, -1px) scale(1.02); }
+            66% { transform: translate(-1px, 1px) scale(1.02); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+
+        .popup-option .magnifying-lens {
+            animation: lensGlow 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes lensGlow {
+            0% { fill: rgba(180, 220, 255, 0.7); }
+            50% { fill: rgba(220, 240, 255, 1); }
+            100% { fill: rgba(180, 220, 255, 0.7); }
+        }
+
+        #image-preview-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            width: fit-content;
+        }
+        #image-preview-container.hidden { display: none !important; }
+
+        #file-info-text {
+            font-size: 0.875rem;
+            color: #475569;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .dark #file-info-text {
+            color: #cbd5e1;
+        }
+
+        .welcome-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .dark .welcome-screen { background-color: #111827; color: #d1d5db; }
+
+        .welcome-container {
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .chatbot-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #0ea5e9, #6f42c1, #fd7e14);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+            line-height: 1.2;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            animation: gradient-flow 8s linear infinite alternate;
+        }
+
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .main-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 3rem;
+            color: #2c3e50;
+            line-height: 1.5;
+            opacity: 0;
+            transition: opacity 0.8s ease-in;
+        }
+        .dark .main-title { color: #e5e7eb; }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .action-button-welcome {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 1.5rem;
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 25px;
+            color: #495057;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            min-height: 70px;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .dark .action-button-welcome { background: #1f2937; border-color: #374151; color: #d1d5db; }
+
+        .action-button-welcome:hover {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .dark .action-button-welcome:hover { background: #374151; border-color: #4b5563; }
+
+        .button-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .orange-icon { background: #fd7e14; color: white; }
+        .green-icon { background: #20c997; color: white; }
+        .purple-icon { background: #6f42c1; color: white; }
+        .blue-icon { background: #0ea5e9; color: white; }
+
+        .button-text {
+            text-align: right;
+            line-height: 1.3;
+            flex: 1;
+            margin-right: 1rem;
+        }
+
+        #submit-button {
+            position: relative;
+        }
+        #submit-button svg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        #stop-icon {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.5);
+        }
+        #submit-button.is-loading #send-icon {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.5);
+        }
+        #submit-button.is-loading #stop-icon {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        @media (max-width: 480px) {
+            .chatbot-name, .main-title { font-size: 1.5rem; }
+            .action-button-welcome { padding: 1.2rem; font-size: 0.85rem; min-height: 60px; }
+            .button-icon { width: 36px; height: 36px; font-size: 1.2rem; }
+        }
+
+        #image-gallery-modal {
+            transition: opacity 300ms ease-in-out;
+        }
+        #image-gallery-modal.hidden {
+            pointer-events: none;
+        }
+        #image-gallery-modal.visible {
+            opacity: 1;
+        }
+        #image-gallery-modal.visible #image-gallery-content {
+            opacity: 1;
+            transform: scale(1);
+        }
+        #gallery-thumbnails .gallery-thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s ease-in-out;
+            opacity: 0.6;
+        }
+        #gallery-thumbnails .gallery-thumb:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        #gallery-thumbnails .gallery-thumb.active {
+            border-color: #3b82f6;
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        #gallery-download-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 9999px;
+            background: linear-gradient(45deg, #3b82f6, #6366f1);
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            min-width: 150px;
+            min-height: 48px;
+            animation: download-pulse 2.5s infinite;
+        }
+        #gallery-download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.45);
+            animation-play-state: paused;
+        }
+        #gallery-download-btn:active {
+            transform: translateY(0px) scale(0.98);
+            box-shadow: 0 2px 8px 0 rgba(59, 130, 246, 0.3);
+        }
+        #gallery-download-btn .typing-indicator span {
+            background-color: white;
+        }
+        @keyframes download-pulse {
+          0% {
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+          }
+          50% {
+            box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.5);
+          }
+          100% {
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+          }
+        }
+
+        @keyframes fade-slide-in-button {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .clarification-message {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+        .dark .clarification-message { background-color: #1f2937; border-color: #374151; color: #d1d5db; }
+
+
+        .clarification-button.glass-button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #334155;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(200, 200, 200, 0.4);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fade-slide-in-button 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        .dark .clarification-button.glass-button { color: #e5e7eb; background: rgba(55, 65, 81, 0.5); border-color: rgba(107, 114, 128, 0.4); }
+
+        .clarification-button.glass-button:nth-of-type(1) {
+            animation-delay: 0.1s;
+        }
+        .clarification-button.glass-button:nth-of-type(2) {
+            animation-delay: 0.2s;
+        }
+
+        .clarification-button.glass-button:hover {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(107, 114, 128, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+        }
+        .dark .clarification-button.glass-button:hover { background: rgba(75, 85, 99, 0.8); border-color: rgba(156, 163, 175, 0.5); }
+
+        .clarification-button.glass-button:active {
+            transform: translateY(0px) scale(0.98);
+            box-shadow: none;
+        }
+
+        .clarification-button.glass-button svg {
+            flex-shrink: 0;
+            color: #4f46e5;
+        }
+        .dark .clarification-button.glass-button svg { color: #818cf8; }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #374151;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            width: 100%;
+        }
+        .dark .menu-item { color: #d1d5db; }
+        .menu-item:hover {
+            background-color: #f3f4f6;
+        }
+        .dark .menu-item:hover { background-color: #374151; }
+        .menu-item.danger:hover {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        .dark .menu-item.danger:hover { background-color: #450a0a; color: #f87171; }
+        .menu-item svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        .menu-divider {
+            height: 1px;
+            background-color: #e5e7eb;
+            margin: 0.5rem 0;
+        }
+        .dark .menu-divider { background-color: #374151; }
+
+        .sidebar-button {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            width: 100%;
+            text-align: right;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            color: #4b5563;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .dark .sidebar-button { color: #d1d5db; }
+        .sidebar-button:hover { background-color: #e5e7eb; color: #1f2937; }
+        .dark .sidebar-button:hover { background-color: #374151; color: #f9fafb; }
+        .sidebar-button svg { flex-shrink: 0; }
+
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .dark .slider { background-color: #374151; }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #4f46e5;
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* ################### START: NEW ANIMATION STYLES ################### */
+
+        .thinking-animation-container {
+            position: relative;
+            overflow: hidden;
+            padding: 2px 0;
+        }
+
+        .thinking-animation-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(239, 246, 255, 0.7), transparent);
+            animation: shimmer 2.5s infinite;
+        }
+        .dark .thinking-animation-container::before {
+            background: linear-gradient(90deg, transparent, rgba(55, 65, 81, 0.5), transparent);
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .thinking-content {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            min-height: 24px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .thinking-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .thinking-svg {
+            width: 20px;
+            height: 20px;
+            filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.3));
+            animation: brainPulse 2s infinite ease-in-out;
+        }
+        .dark .thinking-svg {
+            filter: drop-shadow(0 0 5px rgba(129, 140, 248, 0.4));
+        }
+
+        @keyframes brainPulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .thinking-text {
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: #475569;
+        }
+        .dark .thinking-text {
+            color: #cbd5e1;
+        }
+
+        .neural-animation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .neural-node {
+            width: 6px;
+            height: 6px;
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            border-radius: 50%;
+            margin: 0 3px;
+            position: relative;
+            animation: neuralActivity 2.5s infinite ease-in-out;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+        }
+        .dark .neural-node {
+            box-shadow: 0 0 10px rgba(129, 140, 248, 0.6);
+        }
+
+
+        .neural-node::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            width: 10px;
+            height: 1px;
+            background: linear-gradient(90deg, #6366f1, transparent);
+            animation: synapsefire 2.5s infinite ease-in-out;
+        }
+
+        .neural-node:last-child::before {
+            display: none;
+        }
+
+        .neural-node:nth-child(1) { animation-delay: 0s; }
+        .neural-node:nth-child(2) { animation-delay: 0.4s; }
+        .neural-node:nth-child(3) { animation-delay: 0.8s; }
+        .neural-node:nth-child(4) { animation-delay: 1.2s; }
+
+        @keyframes neuralActivity {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.6;
+                box-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+            }
+            20% {
+                transform: scale(1.4);
+                opacity: 1;
+                box-shadow: 0 0 16px rgba(99, 102, 241, 0.7);
+            }
+            40% {
+                transform: scale(1);
+                opacity: 0.8;
+                box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+            }
+        }
+
+        @keyframes synapsefire {
+            0% {
+                opacity: 0;
+                transform: scaleX(0);
+                transform-origin: left;
+            }
+            20% {
+                opacity: 1;
+                transform: scaleX(1);
+                transform-origin: left;
+            }
+            40% {
+                opacity: 0;
+                transform: scaleX(0);
+                transform-origin: left;
+            }
+            100% {
+                opacity: 0;
+                transform: scaleX(0);
+                transform-origin: left;
+            }
+        }
+
+        /* #################### END: NEW ANIMATION STYLES #################### */
+    </style>
+    
+</head>
+<body class="bg-slate-100 dark:bg-slate-900">
+    <svg width="0" height="0" style="position: absolute; overflow: hidden;">
+        <defs>
+            <filter id="shadowAndHighlight">
+                <feDropShadow dx="-0.5" dy="-0.5" stdDeviation="0" flood-color="#FFFFFF" flood-opacity="0.8"/>
+                <feDropShadow dx="1" dy="1" stdDeviation="0" flood-color="#888888" flood-opacity="0.8"/>
+            </filter>
+        </defs>
+    </svg>
+    
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-40 dark:bg-opacity-60 z-40 hidden opacity-0"></div>
+    <aside id="history-sidebar" class="fixed top-0 right-0 h-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-l border-slate-200/50 dark:border-slate-700/50 w-72 p-4 flex flex-col z-50 transform translate-x-full">
+        <div class="flex items-center justify-between mb-4 px-2">
+            <h2 class="text-lg font-bold text-slate-800 dark:text-slate-200">تاریخچه چت‌ها</h2>
+            <button id="delete-all-chats" title="حذف تمام چت‌ها" class="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full transition-colors">
+                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+            </button>
+        </div>
+        <nav id="history-list" class="flex-grow overflow-y-auto custom-scrollbar -mr-2 pr-2"></nav>
+        <div id="sidebar-footer" class="flex-shrink-0 pt-4 border-t border-slate-200/60 dark:border-slate-700/60">
+            <button id="settings-button" class="sidebar-button">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995s.145.755.438.995l1.003.827c.48.398.668 1.03.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.437-.995s-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.645-.869l.213-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span>تنظیمات</span>
+            </button>
+        </div>
+    </aside>
+
+    <div id="app-container" class="h-full w-full max-w-3xl mx-auto shadow-2xl bg-slate-100 dark:bg-slate-900">
+        <header id="main-header" class="flex items-center justify-between p-4 bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 z-20">
+            <button id="menu-button" class="p-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-4.125 6h-8.25" /></svg>
+            </button>
+            <button id="model-select-button" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2">
+                <span id="current-model-name"></span>
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+            </button>
+            <button id="new-chat-button" class="p-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+            </button>
+        </header>
+        
+        <main id="chat-window" class="flex-grow w-full p-4 sm:p-6 overflow-y-auto custom-scrollbar"></main>
+
+        <footer id="main-footer" class="flex-shrink-0 px-4 sm:px-6 pb-4 sm:pb-6 z-10 pt-4 bg-gradient-to-t from-slate-100 via-slate-100 to-transparent dark:from-slate-900 dark:via-slate-900">
+            <div id="image-preview-container" class="mb-3 relative p-1.5 bg-white/50 dark:bg-slate-700/50 backdrop-blur-md rounded-lg border border-slate-200 dark:border-slate-600 shadow-sm hidden">
+                <img id="image-preview" src="" alt="Preview" class="h-20 w-20 object-cover rounded-md flex-shrink-0" />
+                <span id="file-info-text" class="mr-2 text-slate-800 dark:text-slate-200"></span> 
+                <button id="remove-image-button" class="absolute -top-2 -left-2 bg-slate-700 text-white rounded-full p-0.5 leading-none shadow-md hover:bg-red-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            
+            <form id="message-form" class="flex items-center bg-white/60 dark:bg-slate-800/60 backdrop-blur-lg p-2 border border-slate-200/80 dark:border-slate-700/80 shadow-md focus-within:ring-2 focus-within:ring-blue-500 rounded-full">
+                <textarea id="message-input" rows="1" placeholder="از من هرچه می‌خواهی بپرس..." class="flex-grow bg-transparent text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none px-4 text-right" autocomplete="off"></textarea>
+                
+                <input type="file" id="image-file-input" class="hidden" accept="image/*">
+                <!-- ##################################################################### -->
+                <!-- START: کد اصلاح شده -->
+                <!-- ویژگی accept حذف شد تا همه نوع فایلی قابل انتخاب باشد -->
+                <input type="file" id="general-file-input" class="hidden"> 
+                <!-- ##################################################################### -->
+                <!-- END: کد اصلاح شده -->
+                <!-- ##################################################################### -->
+                
+                <button type="button" id="attach-file-button" class="p-2 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-500 transition-colors">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.122 2.122l7.81-7.81" /></svg>
+                </button>
+                <button id="submit-button" type="submit" class="p-2 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white disabled:from-slate-300 disabled:to-slate-400 dark:disabled:from-slate-500 dark:disabled:to-slate-600 transition-all flex items-center justify-center w-10 h-10 flex-shrink-0">
+                    <svg id="send-icon" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                    <svg id="stop-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 5a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1V6a1 1 0 00-1-1H5z" clip-rule="evenodd"></path></svg>
+                </button>
+            </form>
+        </footer>
+    </div>
+    
+    <div id="model-select-modal" class="fixed inset-0 bg-black bg-opacity-40 dark:bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+       <div id="modal-content" class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w_sm p-6 transform">
+            <h2 class="text-xl font-bold text-center mb-6 text-slate-800 dark:text-white">یک مدل را انتخاب کنید</h2>
+            <div class="space-y-4">
+                <button data-model="gemini-2.5-flash" data-name="چت بات سریع آلفا" class="model-option-card w-full text-right p-4 border dark:border-slate-700 rounded-xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-slate-700/50 transition-all flex items-center gap-4">
+                    <div class="w-5 h-5 border-2 border-slate-400 dark:border-slate-500 rounded-full flex items-center justify-center flex-shrink-0 radio-icon"><div class="w-2.5 h-2.5 bg-blue-500 rounded-full inner-dot hidden"></div></div>
+                    <div>
+                        <p class="font-semibold text-slate-800 dark:text-slate-200">چت بات سریع آلفا</p><p class="text-sm text-slate-500 dark:text-slate-400">مناسب برای سرعت و کارهای روزمره</p>
+                    </div>
+                </button>
+                <button data-model="gemini-2.5-pro" data-name="چت بات پیشرفته آلفا" class="model-option-card w-full text-right p-4 border dark:border-slate-700 rounded-xl hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-slate-700/50 transition-all flex items-center gap-4">
+                    <div class="w-5 h-5 border-2 border-slate-400 dark:border-slate-500 rounded-full flex items-center justify-center flex-shrink-0 radio-icon"><div class="w-2.5 h-2.5 bg-blue-500 rounded-full inner-dot hidden"></div></div>
+                    <div>
+                        <p class="font-semibold text-slate-800 dark:text-slate-200">چت بات پیشرفته آلفا</p><p class="text-sm text-slate-500 dark:text-slate-400">برای پاسخ‌های دقیق‌تر و تحلیل فایل‌ها</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-40 dark:bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div id="settings-modal-content" class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w_sm p-6 transform">
+            <h2 class="text-xl font-bold text-center mb-6 text-slate-800 dark:text-white">تنظیمات</h2>
+            <div class="flex items-center justify-between p-4 rounded-lg bg-slate-100 dark:bg-slate-700/50">
+                <label for="theme-toggle" class="text-slate-700 dark:text-slate-300 font-medium">حالت تیره</label>
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <div id="history-item-menu" class="fixed bg-white dark:bg-slate-800 rounded-xl shadow-lg p-2 z-50 w-56 border border-slate-200 dark:border-slate-700">
+    </div>
+    
+    <div id="message-item-menu" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <div id="message-item-menu-overlay" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+        <div id="message-item-menu-content" class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-2 border border-slate-200 dark:border-slate-700">
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden">
+        <div id="confirm-modal-overlay" class="absolute inset-0 bg-black/40"></div>
+        <div class="relative w-full h-full flex items-center justify-center p-4">
+            <div id="confirm-modal-content" class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w_sm p-6 text-center">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2">تایید عملیات</h3>
+                <p id="confirm-modal-message" class="text-slate-600 dark:text-slate-300 mb-6"></p>
+                <div class="flex justify-center gap-4">
+                    <button id="confirm-modal-cancel-btn" class="px-6 py-2 rounded-lg bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors">انصراف</button>
+                    <button id="confirm-modal-confirm-btn" class="px-6 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors">تایید</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="rename-modal" class="fixed inset-0 z-50 hidden">
+        <div id="rename-modal-overlay" class="absolute inset-0 bg-black/40"></div>
+        <div class="relative w-full h-full flex items-center justify-center p-4">
+            <form id="rename-modal-content" class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w_sm p-6">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 text-center">تغییر نام گفتگو</h3>
+                <input id="rename-input" type="text" class="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none mb-6">
+                <div class="flex justify-center gap-4">
+                    <button id="rename-modal-cancel-btn" type="button" class="px-6 py-2 rounded-lg bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors">انصراف</button>
+                    <button id="rename-modal-confirm-btn" type="submit" class="px-6 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors">تایید</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="fixed inset-0 z-50 hidden">
+        <div id="edit-modal-overlay" class="absolute inset-0 bg-black/40"></div>
+        <div class="relative w-full h-full flex items-center justify-center p-4">
+            <form id="edit-modal-content" class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w_lg p-6">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 text-center">ویرایش پیام</h3>
+                <textarea id="edit-input" rows="5" class="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none mb-6"></textarea>
+                <div class="flex justify-center gap-4">
+                    <button id="edit-modal-cancel-btn" type="button" class="px-6 py-2 rounded-lg bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors">انصراف</button>
+                    <button id="edit-modal-confirm-btn" type="submit" class="px-6 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors">تایید و ارسال مجدد</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="html-preview-modal" class="hidden">
+        <div id="html-preview-overlay" class="absolute inset-0 bg-black/40"></div>
+        <div id="html-preview-content" class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl transform">
+            <div id="html-preview-header" class="bg-slate-50 dark:bg-slate-700">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">پیش‌نمایش HTML</h3>
+                <button id="html-preview-close-btn" class="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="html-preview-iframe-container">
+                <iframe id="html-preview-iframe" srcdoc="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div id="file-popup-menu" class="hidden bg-white border border-slate-200 dark:border-slate-700">
+        <button id="select-image-option" class="popup-option">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="svg-3d-effect" style="margin-left: 15px;">
+                <rect x="3" y="5" width="18" height="14" rx="2" ry="2" fill="#E0E0E0" stroke="#BBB" stroke-width="1"/>
+                <path d="M3 15 L8 10 L13 15 L18 10 L21 15 V19 H3 Z" fill="#999999" stroke="#777" stroke-width="0.5"/>
+                <circle cx="7" cy="8" r="2" fill="#FFD700" stroke="#DAA520" stroke-width="0.5"/>
+                <path class="upload-arrow" d="M12 4 L12 11 M9 8 L12 11 L15 8" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            <span class="text-slate-800">آپلود تصویر</span>
+        </button>
+        <button id="select-file-option" class="popup-option">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="svg-3d-effect" style="margin-left: 15px;">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#E0E0E0" stroke="#BBB" stroke-width="1"/>
+                <polyline points="14 2 14 8 20 8" fill="#CCCCCC" stroke="#AAA" stroke-width="0.5"/>
+                <g class="magnifier-group">
+                    <circle cx="11.5" cy="14.5" r="3" fill="#F0F0F0" stroke="#777" stroke-width="1"/>
+                    <circle class="magnifying-lens" cx="11.5" cy="14.5" r="2.5" fill="rgba(180, 220, 255, 0.7)" stroke="rgba(100, 150, 200, 0.8)" stroke-width="0.5"/>
+                    <path class="magnifying-handle"
+                          d="M13.5 16.5
+                             C15 17.5 17 19.5 19 20.5
+                             Q19.5 21 19 21.5
+                             C17 20.5 15 18.5 13.5 17.5
+                             Z"
+                          fill="#999999" stroke="#777" stroke-width="0.5"/>
+                </g>
+            </svg>
+            <span class="text-slate-800">آپلود فایل</span>
+        </button>
+    </div>
+
+    <div id="image-gallery-modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div id="image-gallery-content" class="relative flex flex-col w-full h-full max-w-5xl max-h-[90vh] transition-all duration-300 scale-95 opacity-0">
+            <button id="gallery-close-btn" class="absolute top-2 left-2 z-10 p-2 text-white bg-black/30 rounded-full hover:bg-black/60 transition-colors">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <div class="relative flex-grow flex items-center justify-center overflow-hidden rounded-lg">
+                <img id="gallery-main-image" src="" alt="تمام صفحه" class="object-contain max-w-full max-h-full transition-opacity duration-300">
+                <button id="gallery-prev-btn" class="absolute left-4 p-3 text-white bg-black/30 rounded-full hover:bg-black/60 transition-colors">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button id="gallery-next-btn" class="absolute right-4 p-3 text-white bg-black/30 rounded-full hover:bg-black/60 transition-colors">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+            </div>
+
+            <div class="flex-shrink-0 pt-4 flex flex-col items-center justify-center gap-4">
+                <button id="gallery-download-btn" class="flex-shrink-0 flex items-center justify-center gap-2 text-white font-semibold">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    <span>دانلود</span>
+                </button>
+                <div id="gallery-thumbnails" class="w-full flex items-center justify-center gap-2 overflow-x-auto custom-scrollbar p-2">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="/src/main.tsx"></script>
-  </body>
+    
+</body>
 </html>
