@@ -44,24 +44,32 @@ export default {
 					DEFAULT: 'hsl(var(--accent))',
 					foreground: 'hsl(var(--accent-foreground))'
 				},
-				popover: {
-					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))'
-				},
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				}
+				// Chat specific colors
+				'chat-background': 'hsl(var(--chat-background))',
+				'chat-input-background': 'hsl(var(--chat-input-background))',
+				'chat-input-border': 'hsl(var(--chat-input-border))',
+				'chat-bubble-user': 'hsl(var(--chat-bubble-user))',
+				'chat-bubble-user-text': 'hsl(var(--chat-bubble-user-text))',
+				'chat-bubble-bot': 'hsl(var(--chat-bubble-bot))',
+				'chat-bubble-bot-text': 'hsl(var(--chat-bubble-bot-text))',
+				'chat-code-background': 'hsl(var(--chat-code-background))',
+				'chat-code-text': 'hsl(var(--chat-code-text))'
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-subtle': 'var(--gradient-subtle)'
+			},
+			boxShadow: {
+				'chat': 'var(--shadow-chat)',
+				'input': 'var(--shadow-input)', 
+				'bubble': 'var(--shadow-bubble)'
+			},
+			transitionProperty: {
+				'smooth': 'var(--transition-smooth)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
