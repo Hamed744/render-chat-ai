@@ -3,12 +3,27 @@ import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { toast } from "sonner";
 
+// آدرس API بک‌اند شما
+// در حالت توسعه محلی، آدرس سرور پایتون است.
+// در حالت نهایی، آدرس سرویس Render.com شما خواهد بود.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000";
+
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
   timestamp: Date;
 }
+
+// تابع برای تبدیل فایل به Base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve((reader.result as string).split(',')[1]);
+    reader.onerror = error => reject(error);
+  });
+};
 
 export const ChatContainer = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -23,89 +38,118 @@ export const ChatContainer = () => {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  // شبیه‌سازی پاسخ هوش مصنوعی
-  const simulateAIResponse = async (userMessage: string) => {
-    setIsTyping(true);
-
-    // تاخیر برای شبیه‌سازی پردازش
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const responses = [
-      `سلام! من یک دستیار هوش مصنوعی هستم. شما گفتید: "${userMessage}". چطور می‌تونم کمکتون کنم؟`,
-      `این یک پاسخ نمونه است. در نسخه نهایی، این پاسخ از API Gemini دریافت خواهد شد.
-
-\`\`\`python
-def hello_world():
-    print("سلام دنیا!")
-    return "موفقیت‌آمیز"
-\`\`\`
-
-آیا کد بالا مفید بود؟`,
-      `برای پیاده‌سازی چت‌بات، مراحل زیر را دنبال کنید:
-
-1. راه‌اندازی Flask backend
-2. اتصال به Gemini API  
-3. پیاده‌سازی streaming responses
-4. استقرار روی Render.com
-
-\`\`\`bash
-pip install -r requirements.txt
-gunicorn --workers 5 app:app
-\`\`\``,
-    ];
-
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-    
-    setIsTyping(false);
-    
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: randomResponse,
-      isUser: false,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, newMessage]);
-  };
-
   const handleSendMessage = async (text: string, file?: File) => {
     if (!text.trim() && !file) return;
 
-    // اضافه کردن پیام کاربر
+    // ۱. اضافه کردن پیام کاربر به لیست پیام‌ها
+    const userMessageText = file ? `${text}\n[فایل ضمیمه: ${file.name}]` : text;
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: file ? `${text}\n[فایل ضمیمه: ${file.name}]` : text,
+      text: userMessageText,
       isUser: true,
       timestamp: new Date(),
     };
-
     setMessages(prev => [...prev, userMessage]);
+    setIsTyping(true);
 
-    if (file) {
-      toast.success(`فایل ${file.name} با موفقیت آپلود شد`);
+    // آماده‌سازی پیام مدل برای دریافت پاسخ
+    const aiMessageId = (Date.now() + 1).toString();
+    const aiMessage: Message = {
+      id: aiMessageId,
+      text: "",
+      isUser: false,
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, aiMessage]);
+
+    try {
+      // ۲. آماده‌سازی بدنه درخواست برای API
+      let file_data = null;
+      if (file) {
+        const file_b64 = await fileToBase64(file);
+        file_data = {
+          mime_type: file.type,
+          data: file_b64,
+        };
+        toast.info(`فایل ${file.name} در حال پردازش است...`);
+      }
+
+      const payload = {
+        message: text,
+        file_data: file_data
+      };
+      
+      // ۳. ارسال درخواست به بک‌اند
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.body) {
+        throw new Error("پاسخی از سرور دریافت نشد.");
+      }
+      
+      // ۴. خواندن پاسخ استریم شده
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const jsonStr = line.substring(6);
+              const data = JSON.parse(jsonStr);
+
+              if (data.error) throw new Error(data.error);
+              if (data.done) break;
+
+              if (data.text) {
+                fullResponse += data.text;
+                setMessages(prev =>
+                  prev.map(msg =>
+                    msg.id === aiMessageId ? { ...msg, text: fullResponse } : msg
+                  )
+                );
+              }
+            } catch (e) {
+              console.error("خطا در پردازش قطعه JSON:", line, e);
+            }
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error("خطا در ارتباط با API:", error);
+      const errorMessage = `متاسفانه خطایی رخ داد: ${(error as Error).message}`;
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === aiMessageId ? { ...msg, text: errorMessage } : msg
+        )
+      );
+      toast.error(errorMessage);
+    } finally {
+      setIsTyping(false);
     }
-
-    // شبیه‌سازی پاسخ AI
-    await simulateAIResponse(text || `فایل ${file?.name} ارسال شد`);
   };
 
   return (
     <div className="flex flex-col h-screen bg-chat-background">
-      {/* Header */}
-      <div className="flex-shrink-0 border-b border-chat-input-border bg-chat-background">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <h1 className="text-xl font-semibold text-foreground text-center">
-            چت‌بات هوش مصنوعی
-          </h1>
-        </div>
-      </div>
-
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {messages.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-muted-foreground mb-4">
+               <div className="text-muted-foreground mb-4">
                 <svg
                   className="mx-auto h-12 w-12 mb-4"
                   fill="none"
@@ -121,10 +165,10 @@ gunicorn --workers 5 app:app
                 </svg>
               </div>
               <h2 className="text-lg font-medium text-foreground mb-2">
-                سلام! چطور می‌تونم کمکتون کنم؟
+                سلام! چطور می‌توانم کمکتان کنم؟
               </h2>
               <p className="text-muted-foreground">
-                سوال یا موضوعی که می‌خواهید درباره‌اش صحبت کنیم را بپرسید
+                سوال یا موضوعی که می‌خواهید درباره‌اش صحبت کنیم را بپرسید.
               </p>
             </div>
           )}
@@ -137,7 +181,7 @@ gunicorn --workers 5 app:app
             />
           ))}
 
-          {isTyping && (
+          {isTyping && messages[messages.length-1]?.isUser && (
             <ChatMessage
               message=""
               isUser={false}
