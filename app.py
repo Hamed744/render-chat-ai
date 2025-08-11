@@ -3,6 +3,7 @@ import re
 import requests
 import json
 from flask import Flask, render_template, request, Response
+from flask_cors import CORS
 import logging
 from filelock import FileLock
 from pathlib import Path
@@ -69,6 +70,7 @@ except Exception as e:
     raise
 
 app = Flask(__name__)
+CORS(app)
 GOOGLE_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 def get_and_increment_key_index():
